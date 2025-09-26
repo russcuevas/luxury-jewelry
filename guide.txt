@@ -1,0 +1,80 @@
+Modules/features  “CASHIER/ADMIN ACCOUNT INTERFACE”
+
+
+
+
+ 
+
+
+
+3. (Navigation next to or after manage categories) “Add products”:
+* category (drp down)
+* product name (txt field/input)
+* description (txt field)
+* price (number)
+* status (available/ not available; can be rbtn or enabled-disabled btn)
+* btn “Save” and “Cancel” should be present below the form.
+
+Note: 
+1. only “create” function for this module. 
+2. Should have table “add_product” in the database.
+3. Insertion of data from the add product module to the database should be working.
+
+
+4. (Navigation next to or after add products) “Manage products”:
+*table form with columns:
+2.1 - number (number of entries)
+2.2 - category 
+2.3 - Name
+2.4 - Description 
+2.5 - Price 
+2.6 - Status
+2.7 - Action (Edit and Delete icon/btn)
+
+Note:
+1. All columns can be sorted 
+2. Show entries should be editable by: 10, 25, 50, 100
+3. There should be a search bar present in the table for faster retrieval of data
+4. “Add product” btn can be added on the upper right corner: once clicked, it will redirect to or open “add products” module which already created a while ago.
+5. No new tables in the database should be created since all the data we are displaying, editing, and deleting here is from the “add_product” table. 
+
+
+
+You are going to create a total of 4 modules.
+
+Recommendation: use side navigation bar for clean and clear design.
+
+
+// done
+Expected Sidenavbar:
+
+Dashboard
+Add Categories 
+Manage Categories 
+Add Products
+Manage Products
+
+1. (Navigation next to or after dashboard) “Add Categories”:
+* Name (txt field/input)
+* Description (txt field)
+* btn “Save” and “Cancel” should be present below the form.
+
+Note:
+1. only “create” function for this module. 
+2. Should have table “add_categories” in the database.
+3. Insertion of data from the add category module to the database should be working.
+
+
+2. (Navigation next to or after add categories ) “Manage categories”:
+*table form with columns:
+2.1 - number (number of entries)
+2.2 - Name 
+2.3 - Description 
+2.4 - Action (Edit and Delete icon/btn)
+
+Note:
+1. All columns can be sorted 
+2. Show entries should be editable by: 10, 25, 50, 100
+3. There should be a search bar present in the table for faster retrieval of data
+4. “Add category” btn can be added on the upper right corner: once clicked, it will redirect to or open “add categories” module which already created a while ago.
+5. No new tables in the database should be created since all the data we are displaying, editing, and deleting here is from the “add_categories” table.
