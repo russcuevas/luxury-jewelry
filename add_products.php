@@ -2,30 +2,49 @@
 session_start();
 include 'connection.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $category = trim($_POST['category']);
-    $description = trim($_POST['description']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $product_name = $_POST['product_name'];
+    $product_description = $_POST['product_description'];
+    $product_price = $_POST['product_price'];
+    $product_status = isset($_POST['product_status']) && $_POST['product_status'] === 'active' ? 'active' : 'not active';
+    $product_category = $_POST['product_category'];
 
-    if (!empty($category) && !empty($description)) {
-        try {
-            $sql = "INSERT INTO add_categories (category, description) VALUES (:category, :description)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bindParam(':category', $category);
-            $stmt->bindParam(':description', $description);
+    if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
+        $fileTmpPath = $_FILES['product_image']['tmp_name'];
+        $fileName = $_FILES['product_image']['name'];
+        $fileNameClean = preg_replace("/[^a-zA-Z0-9.\-_]/", "", basename($fileName));
+        $uploadFileDir = './assets/images/products/';
+        $destPath = $uploadFileDir . $fileNameClean;
+
+        if (move_uploaded_file($fileTmpPath, $destPath)) {
+            $query = "INSERT INTO add_products (product_image, product_name, product_description, product_price, product_status, product_category) 
+                      VALUES (:product_image, :product_name, :product_description, :product_price, :product_status, :product_category)";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':product_image', $fileNameClean);
+            $stmt->bindParam(':product_name', $product_name);
+            $stmt->bindParam(':product_description', $product_description);
+            $stmt->bindParam(':product_price', $product_price);
+            $stmt->bindParam(':product_status', $product_status);
+            $stmt->bindParam(':product_category', $product_category);
 
             if ($stmt->execute()) {
-                echo "<script>alert('Category added successfully!'); window.location.href='add_categories.php';</script>";
+                echo "<script>alert('Product added successfully.'); window.location.href='add_products.php';</script>";
+                exit;
             } else {
-                echo "<script>alert('Error adding category.');</script>";
+                echo "<script>alert('Database insert failed.');</script>";
             }
-        } catch (PDOException $e) {
-            echo "Database error: " . $e->getMessage();
+        } else {
+            echo "<script>alert('File upload failed.');</script>";
         }
     } else {
-        echo "<script>alert('All fields are required.');</script>";
+        echo "<script>alert('Please select a product image.');</script>";
     }
 }
+
+$stmt = $conn->query("SELECT id, category FROM add_categories ORDER BY category ASC");
+$categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 
 
 <!DOCTYPE html>
@@ -75,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </a>
                         </li>
 
-                        <li class="sidebar-item active">
+                        <li class="sidebar-item">
                             <a href="add_categories.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Add Categories</span>
@@ -89,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </a>
                         </li>
 
-                        <li class="sidebar-item ">
+                        <li class="sidebar-item active">
                             <a href="add_products.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Add Products</span>
@@ -156,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="page-title">
                         <div class="row">
                             <div class="col-12 col-md-6 order-md-1 order-last">
-                                <h3>Add Categories</h3>
+                                <h3>Add Products</h3>
                             </div>
                             <div class="col-12 col-md-6 order-md-2 order-first">
                                 <nav
@@ -165,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
                                         <li class="breadcrumb-item active" aria-current="page">
-                                            Add Categories
+                                            Add Products
                                         </li>
                                     </ol>
                                 </nav>
@@ -180,34 +199,87 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="card">
                                     <div class="card-content">
                                         <div class="card-body">
-                                            <form method="POST" action="" class="form" data-parsley-validate>
+                                            <form method="POST" action="" enctype="multipart/form-data" class="form" data-parsley-validate>
                                                 <div class="row">
                                                     <div class="col-md-6 col-12">
                                                         <div class="form-group mandatory">
-                                                            <label for="" class="form-label">Category Name</label>
+                                                            <label for="product_image" class="form-label">Product Image</label>
+                                                            <input
+                                                                type="file"
+                                                                class="form-control"
+                                                                id="product_image"
+                                                                name="product_image"
+                                                                accept="image/*"
+                                                                onchange="previewImage(event)" />
+
+                                                            <!-- Preview Box -->
+                                                            <div id="image_preview_box" class="card mt-3 shadow-sm border-0" style="display: none;">
+                                                                <div class="card-body text-center">
+                                                                    <p class="text-muted mb-2">Image Preview</p>
+                                                                    <img id="image_preview" src="#" alt="Image Preview" class="img-fluid rounded" style="max-height: 250px; object-fit: contain;" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                                                                        <div class="col-md-6 col-12">
+                                                        <div class="form-group mandatory">
+                                                            <label for="" class="form-label">Product Categories</label>
+                                                                <select name="product_category" id="product_category" class="form-select" required>
+                                                                    <option value="" disabled selected>Select a category</option>
+                                                                    <?php foreach ($categories as $cat): ?>
+                                                                        <option value="<?= htmlspecialchars($cat['id']) ?>"><?= htmlspecialchars($cat['category']) ?></option>
+                                                                    <?php endforeach; ?>
+                                                                </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-group mandatory">
+                                                            <label for="" class="form-label">Product Name</label>
                                                             <input
                                                                 type="text"
                                                                 id=""
                                                                 class="form-control"
-                                                                placeholder="Category Name"
-                                                                name="category"
+                                                                placeholder="Product Name"
+                                                                name="product_name"
+                                                                data-parsley-required="true" />
+                                                        </div>
+                                                    </div>
+                                                                                                        <div class="col-md-6 col-12">
+                                                        <div class="form-group mandatory">
+                                                            <label for="" class="form-label">Product Description</label>
+                                                            <input
+                                                                type="text"
+                                                                id=""
+                                                                class="form-control"
+                                                                placeholder="Product Description"
+                                                                name="product_description"
                                                                 data-parsley-required="true" />
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6 col-12">
                                                         <div class="form-group mandatory">
-                                                            <label for="" class="form-label">Category Description</label>
+                                                            <label for="" class="form-label">Product Price</label>
                                                             <input
                                                                 type="text"
                                                                 id=""
                                                                 class="form-control"
-                                                                placeholder="Category Description"
-                                                                name="description"
+                                                                placeholder="Product Price"
+                                                                name="product_price"
                                                                 data-parsley-required="true" />
                                                         </div>
                                                     </div>
-
-
+                                                        <div class="col-md-6">
+                                                            <input type="hidden" name="product_status" value="not active">
+                                                            <div class="form-group form-check form-switch mt-4">
+                                                                <input
+                                                                    class="form-check-input"
+                                                                    type="checkbox"
+                                                                    id="product_status"
+                                                                    name="product_status"
+                                                                    value="active">
+                                                                <label class="form-check-label" for="product_status">Product Status (Active)</label>
+                                                            </div>
+                                                        </div>
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-12 d-flex justify-content-end">
@@ -243,6 +315,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <script src="assets/extensions/jquery/jquery.min.js"></script>
         <script src="assets/extensions/parsleyjs/parsley.min.js"></script>
         <script src="assets/static/js/pages/parsley.js"></script>
+        <script>
+            function previewImage(event) {
+                const input = event.target;
+                const previewBox = document.getElementById('image_preview_box');
+                const previewImage = document.getElementById('image_preview');
+
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        previewImage.src = e.target.result;
+                        previewBox.style.display = 'block';
+                    };
+
+                    reader.readAsDataURL(input.files[0]);
+                } else {
+                    previewBox.style.display = 'none';
+                }
+            }
+        </script>
 
 </body>
 

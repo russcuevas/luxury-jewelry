@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </li>
 
                         <li class="sidebar-item ">
-                            <a href="index.html" class='sidebar-link'>
+                            <a href="add_products.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Add Products</span>
                             </a>
@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton"
                                     style="min-width: 11rem;">
-                                    <li><a class="dropdown-item" href="#"><i
+                                    <li><a class="dropdown-item" href="logout.php"><i
                                                 class="icon-mid bi bi-box-arrow-left me-2"></i> Logout</a></li>
                                 </ul>
                             </div>

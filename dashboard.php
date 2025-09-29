@@ -63,7 +63,7 @@ include 'connection.php';
                         </li>
 
                         <li class="sidebar-item ">
-                            <a href="index.html" class='sidebar-link'>
+                            <a href="add_products.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Add Products</span>
                             </a>
