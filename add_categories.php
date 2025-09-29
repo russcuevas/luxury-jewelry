@@ -2,6 +2,11 @@
 session_start();
 include 'connection.php';
 
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $category = trim($_POST['category']);
     $description = trim($_POST['description']);

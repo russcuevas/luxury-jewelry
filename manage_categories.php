@@ -2,6 +2,11 @@
 session_start();
 include 'connection.php';
 
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];
     $category = trim($_POST['category']);
@@ -100,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </li>
 
                         <li class="sidebar-item ">
-                            <a href="index.html" class='sidebar-link'>
+                            <a href="manage_products.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Manage Products</span>
                             </a>

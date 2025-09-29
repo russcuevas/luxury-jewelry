@@ -2,6 +2,62 @@
 session_start();
 include 'connection.php';
 
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = $_POST['id'];
+    $product_name = $_POST['product_name'];
+    $product_description = $_POST['product_description'];
+    $product_price = $_POST['product_price'];
+    $product_status = isset($_POST['product_status']) ? $_POST['product_status'] : 'not active';
+
+    $imageName = null;
+
+    if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
+        $tmp_name = $_FILES['product_image']['tmp_name'];
+        $originalName = basename($_FILES['product_image']['name']);
+        $imageName = time() . '_' . $originalName;
+        $uploadDir = 'assets/images/products/';
+        move_uploaded_file($tmp_name, $uploadDir . $imageName);
+
+        $stmt = $conn->prepare("SELECT product_image FROM add_products WHERE id = :id");
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        $old = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!empty($old['product_image']) && file_exists($uploadDir . $old['product_image'])) {
+            unlink($uploadDir . $old['product_image']);
+        }
+
+        $sql = "UPDATE add_products SET product_name = :product_name, product_description = :product_description, product_price = :product_price, product_status = :product_status, product_image = :product_image WHERE id = :id";
+    } else {
+        $sql = "UPDATE add_products SET product_name = :product_name, product_description = :product_description, product_price = :product_price, product_status = :product_status WHERE id = :id";
+    }
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':product_name', $product_name);
+    $stmt->bindParam(':product_description', $product_description);
+    $stmt->bindParam(':product_price', $product_price);
+    $stmt->bindParam(':product_status', $product_status);
+    $stmt->bindParam(':id', $id);
+
+    if (isset($imageName)) {
+        $stmt->bindParam(':product_image', $imageName);
+    }
+
+    if ($stmt->execute()) {
+        echo "<script>alert('Product updated successfully.'); window.location.href='manage_products.php';</script>";
+    } else {
+        echo "<script>alert('Failed to update product.'); window.location.href='manage_products.php';</script>";
+    }
+}
+
+
+$stmt = $conn->prepare('SELECT * FROM `add_products`');
+$stmt->execute();
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 
@@ -60,7 +116,7 @@ include 'connection.php';
                             </a>
                         </li>
 
-                        <li class="sidebar-item active">
+                        <li class="sidebar-item">
                             <a href="manage_categories.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Manage Categories</span>
@@ -74,8 +130,8 @@ include 'connection.php';
                             </a>
                         </li>
 
-                        <li class="sidebar-item ">
-                            <a href="index.html" class='sidebar-link'>
+                        <li class="sidebar-item active">
+                            <a href="manage_products.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Manage Products</span>
                             </a>
@@ -134,7 +190,7 @@ include 'connection.php';
                     <div class="page-title">
                         <div class="row">
                             <div class="col-12 col-md-6 order-md-1 order-last">
-                                <h3>Manage Categories</h3>
+                                <h3>Manage Products</h3>
                             </div>
                             <div class="col-12 col-md-6 order-md-2 order-first">
                                 <nav
@@ -143,7 +199,7 @@ include 'connection.php';
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
                                         <li class="breadcrumb-item active" aria-current="page">
-                                            Manage Categories
+                                            Manage Products
                                         </li>
                                     </ol>
                                 </nav>
@@ -157,8 +213,8 @@ include 'connection.php';
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">
                                 </h5>
-                                <a href="add_categories.php" class="btn btn-primary btn-sm">
-                                    Add Category +
+                                <a href="add_products.php" class="btn btn-primary btn-sm">
+                                    Add Products +
                                 </a>
                             </div>
 
@@ -167,67 +223,126 @@ include 'connection.php';
                                     <thead>
                                         <tr>
                                             <th>Number</th>
-                                            <th>Name</th>
-                                            <th>Description</th>
+                                            <th>Product Image</th>
+                                            <th>Product Name</th>
+                                            <th>Product Description</th>
+                                            <th>Product Price</th>
+                                            <th>Status</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php
-                                        include 'connection.php';
-                                        $stmt = $conn->query("SELECT * FROM add_categories ORDER BY id ASC");
-                                        $number = 1;
-                                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                        ?>
+                                        <?php $count = 1; ?>
+                                        <?php foreach ($products as $product): ?>
                                             <tr>
-                                                <td><?= $number++; ?></td>
-                                                <td><?= htmlspecialchars($row['category']); ?></td>
-                                                <td><?= htmlspecialchars($row['description']); ?></td>
+                                                <td><?= $count++ ?></td>
+
                                                 <td>
-                                                    <button class="btn btn-sm btn-warning editBtn"
-                                                        data-id="<?= $row['id']; ?>"
-                                                        data-category="<?= htmlspecialchars($row['category']); ?>"
-                                                        data-description="<?= htmlspecialchars($row['description']); ?>">
-                                                        Edit
-                                                    </button>
-                                                    <a href="delete_category.php?id=<?= $row['id']; ?>" class="btn btn-sm btn-danger"
-                                                        onclick="return confirm('Are you sure you want to delete this category?');">Delete</a>
+                                                    <?php if (!empty($product['product_image'])): ?>
+                                                        <img src="assets/images/products/<?= htmlspecialchars($product['product_image']) ?>" alt="Product Image" width="60" height="60">
+                                                    <?php else: ?>
+                                                        <span class="text-muted">No image</span>
+                                                    <?php endif; ?>
+                                                </td>
+
+                                                <td><?= htmlspecialchars($product['product_name']) ?></td>
+                                                <td><?= htmlspecialchars($product['product_description']) ?></td>
+                                                <td>₱<?= number_format($product['product_price'], 2) ?></td>
+
+                                                <td>
+                                                    <?php if ($product['product_status'] == 'active'): ?>
+                                                        <span class="badge bg-success">Active</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary">Inactive</span>
+                                                    <?php endif; ?>
+                                                </td>
+
+                                                <td>
+                                                <button
+                                                    class="btn btn-sm btn-warning editProductBtn"
+                                                    data-id="<?= $product['id']; ?>"
+                                                    data-name="<?= htmlspecialchars($product['product_name']); ?>"
+                                                    data-description="<?= htmlspecialchars($product['product_description']); ?>"
+                                                    data-price="<?= $product['product_price']; ?>"
+                                                    data-status="<?= $product['product_status']; ?>"
+                                                    data-image="<?= htmlspecialchars($product['product_image']); ?>"
+                                                >
+                                                    Edit
+                                                </button>
+
+                                                    <a href="delete_product.php?id=<?= $product['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
                                                 </td>
                                             </tr>
-                                        <?php } ?>
+                                        <?php endforeach; ?>
                                     </tbody>
+
                                 </table>
+                                <!-- Edit Product Modal -->
+                                <div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <form method="POST" action="" enctype="multipart/form-data">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Edit Product</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="id" id="edit_product_id">
+
+                                                    <div class="mb-3">
+                                                        <label>Current Image</label><br>
+                                                        <img id="current_image_preview" src="" alt="Current Image" width="100" height="100">
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label>Change Image</label>
+                                                        <input type="file" name="product_image" class="form-control">
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label>Product Name</label>
+                                                        <input type="text" class="form-control" name="product_name" id="edit_product_name" required>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label>Description</label>
+                                                        <textarea class="form-control" name="product_description" id="edit_product_description" required></textarea>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label>Price</label>
+                                                        <input type="number" step="0.01" class="form-control" name="product_price" id="edit_product_price" required>
+                                                    </div>
+
+<div class="mb-3">
+    <label>Status</label>
+    <div class="form-check form-switch">
+        <input
+            class="form-check-input"
+            type="checkbox"
+            id="edit_product_status"
+            name="product_status"
+            value="active"
+        >
+        <label class="form-check-label" for="edit_product_status">Active</label>
+    </div>
+</div>
+
+                                                </div>
+
+                                                <div class="modal-footer">
+                                                    <button type="submit" class="btn btn-success">Update</button>
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
 
                             </div>
                         </div>
-                        <!-- Edit Modal -->
-                        <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <form method="POST" action="">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Edit Category</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <input type="hidden" name="id" id="edit_id">
-                                            <div class="mb-3">
-                                                <label class="form-label">Category Name</label>
-                                                <input type="text" name="category" id="edit_category" class="form-control" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Description</label>
-                                                <input type="text" name="description" id="edit_description" class="form-control" required>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Update</button>
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+
 
                     </section>
                 </div>
@@ -245,16 +360,33 @@ include 'connection.php';
         <script src="assets/extensions/simple-datatables/umd/simple-datatables.js"></script>
         <script src="assets/static/js/pages/simple-datatables.js"></script>
         <script>
-            $(document).on("click", ".editBtn", function() {
-                let id = $(this).data("id");
-                let category = $(this).data("category");
-                let description = $(this).data("description");
+            $(document).on("click", ".editProductBtn", function () {
+                const id = $(this).data("id");
+                const name = $(this).data("name");
+                const description = $(this).data("description");
+                const price = $(this).data("price");
+                const status = $(this).data("status");
+                const image = $(this).data("image");
 
-                $("#edit_id").val(id);
-                $("#edit_category").val(category);
-                $("#edit_description").val(description);
+                $("#edit_product_id").val(id);
+                $("#edit_product_name").val(name);
+                $("#edit_product_description").val(description);
+                $("#edit_product_price").val(price);
+                // $("#edit_product_status").val(status);
 
-                $("#editModal").modal("show");
+                    if (status === "active") {
+                        $("#edit_product_status").prop("checked", true);
+                    } else {
+                        $("#edit_product_status").prop("checked", false);
+                    }
+
+                if (image) {
+                    $("#current_image_preview").attr("src", "assets/images/products/" + image);
+                } else {
+                    $("#current_image_preview").attr("src", "assets/images/products/default.jpg");
+                }
+
+                $("#editProductModal").modal("show");
             });
         </script>
 

@@ -2,6 +2,11 @@
 session_start();
 include 'connection.php';
 
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 if (isset($_GET['id']) && !empty($_GET['id'])) {
     $id = $_GET['id'];
 
