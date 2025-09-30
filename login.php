@@ -1,12 +1,11 @@
 <?php
 session_start();
-include 'connection.php'; // should set up $pdo (PDO instance)
+include 'connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    // Example using prepared statement + execute(array) (NO bindParam)
     $stmt = $conn->prepare("SELECT * FROM `admin` WHERE `username` = ? AND `password` = ?");
     $stmt->execute([$username, $password]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
