@@ -1,3 +1,27 @@
+<?php
+session_start();
+include 'connection.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
+
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = :username LIMIT 1");
+    $stmt->bindParam(':username', $username);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user && $user['password'] === $password) {
+        $_SESSION['id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        header("Location: index.php");
+        exit;
+    } else {
+        echo "<script>alert('Invalid username or password');</script>";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -103,7 +127,7 @@
     <div class="container-fluid min-vh-100 d-flex justify-content-center align-items-center bg-light">
         <div class="container" style="max-width: 600px;">
             <h1 class="mb-4 text-center">Login Page</h1>
-            <form action="#">
+            <form action="" method="POST">
                 <div class="form-item mb-3">
                     <label class="form-label">Username</label>
                     <input type="text" name="username" class="form-control">
@@ -114,9 +138,10 @@
                 </div>
                 <div class="form-item d-flex justify-content-between align-items-center mt-3">
                     <a href="register.php">Click here to register</a>
-                    <button class="btn border-secondary rounded-pill px-4 py-2 text-primary text-uppercase" type="button">
+                    <button class="btn border-secondary rounded-pill px-4 py-2 text-primary text-uppercase" type="submit">
                         Login
                     </button>
+
                 </div>
             </form>
         </div>

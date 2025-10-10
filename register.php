@@ -1,3 +1,43 @@
+<?php
+include 'connection.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $fullname = $_POST['fullname'];
+    $address = $_POST['address'];
+    $email = $_POST['email'];
+    $phone_number = $_POST['phone_number'];
+    $username = $_POST['username'];
+    $password = $_POST['password']; // plain text - insecure
+
+    // Check if username already exists
+    $checkStmt = $conn->prepare("SELECT id FROM users WHERE username = :username");
+    $checkStmt->bindParam(':username', $username);
+    $checkStmt->execute();
+
+    if ($checkStmt->rowCount() > 0) {
+        echo "<script>alert('Username already taken.'); window.history.back();</script>";
+        exit;
+    }
+
+    // Insert user into database
+    $stmt = $conn->prepare("INSERT INTO users (fullname, address, email, phone_number, username, password) 
+                            VALUES (:fullname, :address, :email, :phone_number, :username, :password)");
+
+    $stmt->bindParam(':fullname', $fullname);
+    $stmt->bindParam(':address', $address);
+    $stmt->bindParam(':email', $email);
+    $stmt->bindParam(':phone_number', $phone_number);
+    $stmt->bindParam(':username', $username);
+    $stmt->bindParam(':password', $password); // not hashed
+
+    if ($stmt->execute()) {
+        echo "<script>alert('Registration successful. You can now login.'); window.location.href='user_login.php';</script>";
+    } else {
+        echo "<script>alert('Registration failed.'); window.history.back();</script>";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -103,31 +143,35 @@
     <div class="container-fluid min-vh-100 d-flex justify-content-center align-items-center bg-light">
         <div class="container" style="max-width: 600px;">
             <h1 class="mb-4 text-center">Register Page</h1>
-            <form action="#">
+            <form action="" method="POST">
                 <div class="form-item mb-3">
                     <label class="form-label">Fullname</label>
-                    <input type="text" name="fullname" class="form-control">
+                    <input type="text" name="fullname" class="form-control" required>
                 </div>
                 <div class="form-item mb-3">
                     <label class="form-label">Complete Address</label>
-                    <input type="text" name="address" class="form-control">
+                    <input type="text" name="address" class="form-control" required>
                 </div>
                 <div class="form-item mb-3">
                     <label class="form-label">Phone Number</label>
-                    <input type="text" name="phone_number" class="form-control">
+                    <input type="text" name="phone_number" class="form-control" required>
+                </div>
+                <div class="form-item mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" required>
                 </div>
                 <div class="form-item mb-3">
                     <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control">
+                    <input type="text" name="username" class="form-control" required>
                 </div>
                 <div class="form-item mb-3">
                     <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control">
+                    <input type="password" name="password" class="form-control" required>
                 </div>
                 <div class="form-item d-flex justify-content-between align-items-center mt-3">
                     <a href="user_login.php">Click here to login</a>
-                    <button class="btn border-secondary rounded-pill px-4 py-2 text-primary text-uppercase" type="button">
-                        Login
+                    <button class="btn border-secondary rounded-pill px-4 py-2 text-primary text-uppercase" type="submit">
+                        Register
                     </button>
                 </div>
             </form>

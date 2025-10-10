@@ -1,3 +1,9 @@
+<?php 
+session_start();
+include 'connection.php';
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -60,7 +66,11 @@
                     <div class="navbar-nav mx-auto">
                         <a href="index.php" class="nav-item nav-link active">Home</a>
                         <a href="shop.php" class="nav-item nav-link">Shop</a>
-                        <a href="user_login.php" class="nav-item nav-link">Login</a>
+                        <?php if (isset($_SESSION['id'])): ?>
+                            <a href="user_logout.php" class="nav-item nav-link">Logout</a>
+                        <?php else: ?>
+                            <a href="user_login.php" class="nav-item nav-link">Login</a>
+                        <?php endif; ?>
                     </div>
                     <div class="d-flex m-3 me-0">
                         <a href="cart.php" class="position-relative me-4 my-auto">
