@@ -1,3 +1,35 @@
+<?php
+session_start();
+include 'connection.php'; // Your DB connection
+
+if (!isset($_SESSION['id'])) {
+    header("Location: user_login.php");
+    exit;
+}
+
+$user_id = $_SESSION['id'];
+
+// Fetch user info
+$stmtUser = $conn->prepare("SELECT fullname, address, phone_number, email FROM users WHERE id = ?");
+$stmtUser->execute([$user_id]);
+$user = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+// Fetch cart items
+$stmt = $conn->prepare("SELECT c.id AS cart_id, c.quantity, p.product_name, p.product_price, p.product_image
+                        FROM cart c
+                        JOIN add_products p ON c.product_id = p.id
+                        WHERE c.user_id = ?");
+$stmt->execute([$user_id]);
+$cartItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Calculate total
+$total = 0;
+foreach ($cartItems as $item) {
+    $total += $item['product_price'] * $item['quantity'];
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -110,142 +142,104 @@
 
     <!-- Checkout Page Start -->
     <div class="container-fluid py-5">
-        <div class="container py-5">
-            <h1 class="mb-4">Your Information</h1>
-            <form action="#">
-                <div class="row g-5">
-                    <div class="col-md-12 col-lg-12 col-xl-7">
-                        <div class="form-item">
-                            <label class="form-label my-3">Fullname<sup>*</sup></label>
-                            <input type="text" class="form-control">
-                        </div>
-                        <div class="form-item">
-                            <label class="form-label my-3">Address <sup>*</sup></label>
-                            <input type="text" class="form-control" placeholder="House Number Street Name">
-                        </div>
-                        <div class="form-item">
-                            <label class="form-label my-3">Mobile<sup>*</sup></label>
-                            <input type="tel" class="form-control">
-                        </div>
-                        <div class="form-item">
-                            <label class="form-label my-3">Email Address<sup>*</sup></label>
-                            <input type="email" class="form-control">
-                        </div>
-                    </div>
-                    <div class="col-md-12 col-lg-6 col-xl-5">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Products</th>
-                                        <th scope="col">Name</th>
-                                        <th scope="col">Price</th>
-                                        <th scope="col">Quantity</th>
-                                        <th scope="col">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <th scope="row">
-                                            <div class="d-flex align-items-center mt-2">
-                                                <img src="img/vegetable-item-2.jpg" class="img-fluid rounded-circle"
-                                                    style="width: 90px; height: 90px;" alt="">
-                                            </div>
-                                        </th>
-                                        <td class="py-5">Awesome Brocoli</td>
-                                        <td class="py-5">$69.00</td>
-                                        <td class="py-5">2</td>
-                                        <td class="py-5">$138.00</td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">
-                                            <div class="d-flex align-items-center mt-2">
-                                                <img src="img/vegetable-item-5.jpg" class="img-fluid rounded-circle"
-                                                    style="width: 90px; height: 90px;" alt="">
-                                            </div>
-                                        </th>
-                                        <td class="py-5">Potatoes</td>
-                                        <td class="py-5">$69.00</td>
-                                        <td class="py-5">2</td>
-                                        <td class="py-5">$138.00</td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">
-                                            <div class="d-flex align-items-center mt-2">
-                                                <img src="img/vegetable-item-3.png" class="img-fluid rounded-circle"
-                                                    style="width: 90px; height: 90px;" alt="">
-                                            </div>
-                                        </th>
-                                        <td class="py-5">Big Banana</td>
-                                        <td class="py-5">$69.00</td>
-                                        <td class="py-5">2</td>
-                                        <td class="py-5">$138.00</td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">
-                                        </th>
-                                        <td class="py-5">
-                                            <p class="mb-0 text-dark py-4">Shipping</p>
-                                        </td>
-                                        <td colspan="3" class="py-5">
-                                            <div class="form-check text-start">
+            <div class="container py-5">
+        <h1 class="mb-4">Checkout</h1>
 
-                                            </div>
-                                            <div class="form-check text-start">
-                                                <input required checked type="checkbox"
-                                                    class="form-check-input bg-primary border-0" id="Shipping-1"
-                                                    name="Shipping-1" value="Shipping">
-                                                <label class="form-check-label" for="Shipping-1">Free Shipping</label>
-                                            </div>
-                                            <div class="form-check text-start">
+        <?php if (count($cartItems) === 0): ?>
+            <div class="alert alert-warning">Your cart is empty. <a href="shop.php">Shop Now</a></div>
+        <?php else: ?>
 
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">
-                                        </th>
-                                        <td class="py-5">
-                                            <p class="mb-0 text-dark text-uppercase py-3">TOTAL</p>
-                                        </td>
-                                        <td class="py-5"></td>
-                                        <td class="py-5"></td>
-                                        <td class="py-5">
-                                            <div class="py-3 border-bottom border-top">
-                                                <p class="mb-0 text-dark">$135.00</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+        <form action="place_order.php" method="POST">
+            <div class="row g-5">
+
+                <!-- User Info -->
+                <div class="col-md-6">
+                    <h3>Your Information</h3>
+                        <div class="mb-3">
+                            <label for="fullname" class="form-label">Fullname <sup>*</sup></label>
+                            <input type="text" class="form-control" id="fullname" name="fullname" required
+                                value="<?= htmlspecialchars($user['fullname'] ?? '') ?>" readonly>
                         </div>
-                        <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3">
-                            <div class="col-12">
-                                <div class="form-check text-start my-3">
-                                    <input type="checkbox" class="form-check-input bg-primary border-0" id="COD-1"
-                                        name="payment_method" value="COD">
-                                    <label class="form-check-label" for="COD-1">Cash On Delivery</label>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address <sup>*</sup></label>
+                            <input type="text" class="form-control" id="address" name="address" placeholder="House Number Street Name" required
+                                value="<?= htmlspecialchars($user['address'] ?? '') ?>" readonly>
                         </div>
-                        <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3">
-                            <div class="col-12">
-                                <div class="form-check text-start my-3">
-                                    <input type="checkbox" class="form-check-input bg-primary border-0" id="Gcash-1"
-                                        name="payment_method" value="GCASH">
-                                    <label class="form-check-label" for="Gcash-1">Gcash</label>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label for="mobile" class="form-label">Mobile <sup>*</sup></label>
+                            <input type="tel" class="form-control" id="mobile" name="mobile" required
+                                value="<?= htmlspecialchars($user['phone_number'] ?? '') ?>" readonly>
                         </div>
-                        <div class="row g-4 text-center align-items-center justify-content-center pt-4">
-                            <button type="button"
-                                class="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary">Place
-                                Order</button>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address <sup>*</sup></label>
+                            <input type="email" class="form-control" id="email" name="email" required
+                                value="<?= htmlspecialchars($user['email'] ?? '') ?>" readonly>
                         </div>
-                    </div>
                 </div>
-            </form>
-        </div>
+
+                <!-- Order Summary -->
+                <div class="col-md-6">
+                    <h3>Order Summary</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($cartItems as $item): ?>
+                            <tr>
+                                <td><img style="height: 100px; width: 100px;" src="assets/images/products/<?= htmlspecialchars($item['product_image']) ?>"
+                                        alt="<?= htmlspecialchars($item['product_name']) ?>" class="rounded-circle img-product" /></td>
+                                <td><?= htmlspecialchars($item['product_name']) ?></td>
+                                <td>₱<?= number_format($item['product_price'], 2) ?></td>
+                                <td><?= $item['quantity'] ?></td>
+                                <td>₱<?= number_format($item['product_price'] * $item['quantity'], 2) ?></td>
+                            </tr>
+                            <!-- Pass cart item ids and quantities as hidden inputs -->
+                            <input type="hidden" name="cart_id[]" value="<?= $item['cart_id'] ?>">
+                            <input type="hidden" name="quantity[]" value="<?= $item['quantity'] ?>">
+                            <?php endforeach; ?>
+                            <tr>
+                                <td colspan="4" class="text-end fw-bold">Total</td>
+                                <td class="fw-bold">₱<?= number_format($total, 2) ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Shipping -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Shipping</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="shipping" id="shippingFree" value="Free Shipping" checked>
+                            <label class="form-check-label" for="shippingFree">Free Shipping</label>
+                        </div>
+                        <!-- Add more shipping options if needed -->
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Payment Method <sup>*</sup></label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="paymentCOD" value="Cash On Delivery" required>
+                            <label class="form-check-label" for="paymentCOD">Cash On Delivery</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="paymentGCash" value="GCash" required>
+                            <label class="form-check-label" for="paymentGCash">GCash</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 text-uppercase py-3">Place Order</button>
+                </div>
+            </div>
+        </form>
+        <?php endif; ?>
+    </div>
     </div>
     <!-- Checkout Page End -->
 

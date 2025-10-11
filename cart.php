@@ -1,3 +1,58 @@
+<?php
+session_start();
+include 'connection.php'; 
+
+if (!isset($_SESSION['id'])) {
+    header("Location: user_login.php");
+    exit;
+}
+
+$user_id = $_SESSION['id'];
+
+
+// Remove item
+if (isset($_GET['remove'])) {
+    $cart_id = intval($_GET['remove']);
+    $stmt = $conn->prepare("DELETE FROM cart WHERE id = ? AND user_id = ?");
+    $stmt->execute([$cart_id, $user_id]);
+    header("Location: cart.php");
+    exit;
+}
+
+// Fetch cart items
+$stmt = $conn->prepare("SELECT c.id AS cart_id, c.quantity, p.product_name, p.product_price, p.product_image
+                        FROM cart c
+                        JOIN add_products p ON c.product_id = p.id
+                        WHERE c.user_id = ?");
+$stmt->execute([$user_id]);
+$cartItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Calculate total
+$total = 0;
+foreach ($cartItems as $item) {
+    $total += $item['product_price'] * $item['quantity'];
+}
+
+$cartItemCount = 0;
+
+if (isset($_SESSION['id'])) {
+    $userId = $_SESSION['id'];
+
+    try {
+        $stmt = $conn->prepare("SELECT COUNT(DISTINCT product_id) AS total_items FROM cart WHERE user_id = :user_id");
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row && $row['total_items']) {
+            $cartItemCount = $row['total_items'];
+        }
+    } catch (PDOException $e) {
+        echo "Error fetching cart count: " . $e->getMessage();
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -60,15 +115,22 @@
                     <div class="navbar-nav mx-auto">
                         <a href="index.php" class="nav-item nav-link">Home</a>
                         <a href="shop.php" class="nav-item nav-link active">Shop</a>
-                        <a href="user_login.php" class="nav-item nav-link">Login</a>
+                        <?php if (isset($_SESSION['id'])): ?>
+                            <a href="user_logout.php" class="nav-item nav-link">Logout</a>
+                        <?php else: ?>
+                            <a href="user_login.php" class="nav-item nav-link">Login</a>
+                        <?php endif; ?>
                     </div>
                     <div class="d-flex m-3 me-0">
-                        <a href="cart.php" class="position-relative me-4 my-auto">
-                            <i class="fa fa-shopping-bag fa-2x"></i>
-                            <span
-                                class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1"
-                                style="top: -5px; left: 15px; height: 20px; min-width: 20px;">3</span>
-                        </a>
+                        <?php if (isset($_SESSION['id'])): ?>
+                            <a href="cart.php" class="position-relative me-4 my-auto">
+                                <i class="fa fa-shopping-bag fa-2x"></i>
+                                <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1"
+                                    style="top: -5px; left: 15px; height: 20px; min-width: 20px;">
+                                    <?= $cartItemCount ?>
+                                </span>
+                            </a>
+                        <?php endif; ?>
                         <!-- <a href="#" class="my-auto">
                                 <i class="fas fa-user fa-2x"></i>
                             </a> -->
@@ -124,122 +186,40 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <th scope="row">
-                                <div class="d-flex align-items-center">
-                                    <img src="img/vegetable-item-3.png" class="img-fluid me-5 rounded-circle"
-                                        style="width: 80px; height: 80px;" alt="">
-                                </div>
-                            </th>
-                            <td>
-                                <p class="mb-0 mt-4">Big Banana</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 mt-4">2.99 $</p>
-                            </td>
-                            <td>
-                                <div class="input-group quantity mt-4" style="width: 100px;">
-                                    <div class="input-group-btn">
-                                        <button class="btn btn-sm btn-minus rounded-circle bg-light border">
-                                            <i class="fa fa-minus"></i>
-                                        </button>
-                                    </div>
-                                    <input type="text" class="form-control form-control-sm text-center border-0"
-                                        value="1">
-                                    <div class="input-group-btn">
-                                        <button class="btn btn-sm btn-plus rounded-circle bg-light border">
-                                            <i class="fa fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 mt-4">2.99 $</p>
-                            </td>
-                            <td>
-                                <button class="btn btn-md rounded-circle bg-light border mt-4">
-                                    <i class="fa fa-times text-danger"></i>
-                                </button>
-                            </td>
-
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <div class="d-flex align-items-center">
-                                    <img src="img/vegetable-item-5.jpg" class="img-fluid me-5 rounded-circle"
-                                        style="width: 80px; height: 80px;" alt="" alt="">
-                                </div>
-                            </th>
-                            <td>
-                                <p class="mb-0 mt-4">Potatoes</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 mt-4">2.99 $</p>
-                            </td>
-                            <td>
-                                <div class="input-group quantity mt-4" style="width: 100px;">
-                                    <div class="input-group-btn">
-                                        <button class="btn btn-sm btn-minus rounded-circle bg-light border">
-                                            <i class="fa fa-minus"></i>
-                                        </button>
-                                    </div>
-                                    <input type="text" class="form-control form-control-sm text-center border-0"
-                                        value="1">
-                                    <div class="input-group-btn">
-                                        <button class="btn btn-sm btn-plus rounded-circle bg-light border">
-                                            <i class="fa fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 mt-4">2.99 $</p>
-                            </td>
-                            <td>
-                                <button class="btn btn-md rounded-circle bg-light border mt-4">
-                                    <i class="fa fa-times text-danger"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <div class="d-flex align-items-center">
-                                    <img src="img/vegetable-item-2.jpg" class="img-fluid me-5 rounded-circle"
-                                        style="width: 80px; height: 80px;" alt="" alt="">
-                                </div>
-                            </th>
-                            <td>
-                                <p class="mb-0 mt-4">Awesome Brocoli</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 mt-4">2.99 $</p>
-                            </td>
-                            <td>
-                                <div class="input-group quantity mt-4" style="width: 100px;">
-                                    <div class="input-group-btn">
-                                        <button class="btn btn-sm btn-minus rounded-circle bg-light border">
-                                            <i class="fa fa-minus"></i>
-                                        </button>
-                                    </div>
-                                    <input type="text" class="form-control form-control-sm text-center border-0"
-                                        value="1">
-                                    <div class="input-group-btn">
-                                        <button class="btn btn-sm btn-plus rounded-circle bg-light border">
-                                            <i class="fa fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 mt-4">2.99 $</p>
-                            </td>
-                            <td>
-                                <button class="btn btn-md rounded-circle bg-light border mt-4">
-                                    <i class="fa fa-times text-danger"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
+    <?php if (count($cartItems) > 0): ?>
+        <?php foreach ($cartItems as $item): ?>
+        <tr>
+            <th scope="row">
+                <div class="d-flex align-items-center">
+                    <img src="assets/images/products/<?= htmlspecialchars($item['product_image']) ?>" class="img-fluid me-5 rounded-circle"
+                        style="width: 80px; height: 80px;" alt="">
+                </div>
+            </th>
+            <td>
+                <p class="mb-0 mt-4"><?= htmlspecialchars($item['product_name']) ?></p>
+            </td>
+            <td>
+                <p class="mb-0 mt-4">₱<?= number_format($item['product_price'], 2) ?></p>
+            </td>
+            <td>
+                <p class="mb-0 mt-4"><?= htmlspecialchars($item['quantity']) ?></p>
+            </td>
+            <td>
+                <p class="mb-0 mt-4">₱<?= number_format($item['product_price'] * $item['quantity'], 2) ?></p>
+            </td>
+            <td>
+                <a href="cart.php?remove=<?= $item['cart_id'] ?>" class="btn btn-md rounded-circle bg-light border mt-4" onclick="return confirm('Remove this item?')">
+                    <i class="fa fa-times text-danger"></i>
+                </a>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="6" class="text-center py-4">Your cart is empty.</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
                 </table>
             </div>
             <!-- <div class="mt-5">
@@ -250,13 +230,14 @@
                 <div class="col-8"></div>
                 <div class="col-sm-8 col-md-7 col-lg-6 col-xl-4">
                     <div class="bg-light rounded">
-                        <div class="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
-                            <h5 class="mb-0 ps-4 me-4">Total</h5>
-                            <p class="mb-0 pe-4">$99.00</p>
-                        </div>
-                        <button
-                            class="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase mb-4 ms-4"
-                            type="button">Proceed Checkout</button>
+                <div class="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
+                    <h5 class="mb-0 ps-4 me-4">Total</h5>
+                    <p class="mb-0 pe-4">₱<?= number_format($total, 2) ?></p>
+                </div>
+<button onclick="window.location.href = 'checkout.php';"
+    class="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase mb-4 ms-4"
+    type="button">Proceed Checkout</button>
+
                     </div>
                 </div>
             </div>
