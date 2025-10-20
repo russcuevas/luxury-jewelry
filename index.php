@@ -2,27 +2,6 @@
 session_start();
 include 'connection.php';
 
-$cartItemCount = 0;
-
-if (isset($_SESSION['id'])) {
-    $userId = $_SESSION['id'];
-
-    try {
-        $stmt = $conn->prepare("SELECT COUNT(DISTINCT product_id) AS total_items FROM cart WHERE user_id = :user_id");
-        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
-        $stmt->execute();
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($row && $row['total_items']) {
-            $cartItemCount = $row['total_items'];
-        }
-    } catch (PDOException $e) {
-        echo "Error fetching cart count: " . $e->getMessage();
-    }
-}
-
-
-
 ?>
 
 <!DOCTYPE html>
@@ -87,25 +66,8 @@ if (isset($_SESSION['id'])) {
                     <div class="navbar-nav mx-auto">
                         <a href="index.php" class="nav-item nav-link active">Home</a>
                         <a href="shop.php" class="nav-item nav-link">Shop</a>
-                        <?php if (isset($_SESSION['id'])): ?>
-                            <a href="user_logout.php" class="nav-item nav-link">Logout</a>
-                        <?php else: ?>
-                            <a href="user_login.php" class="nav-item nav-link">Login</a>
-                        <?php endif; ?>
-                    </div>
-                    <div class="d-flex m-3 me-0">
-                        <?php if (isset($_SESSION['id'])): ?>
-                            <a href="cart.php" class="position-relative me-4 my-auto">
-                                <i class="fa fa-shopping-bag fa-2x"></i>
-                                <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1"
-                                    style="top: -5px; left: 15px; height: 20px; min-width: 20px;">
-                                    <?= $cartItemCount ?>
-                                </span>
-                            </a>
-                        <?php endif; ?>
-                        <!-- <a href="#" class="my-auto">
-                                <i class="fas fa-user fa-2x"></i>
-                            </a> -->
+                        <a href="user_login.php" class="nav-item nav-link">Cashier Login</a>
+                        <a href="login.php" class="nav-item nav-link">Admin Login</a>
                     </div>
                 </div>
             </nav>

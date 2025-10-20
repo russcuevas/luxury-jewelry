@@ -109,6 +109,20 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             </a>
                         </li>
 
+                        <li class="sidebar-item ">
+                            <a href="add_suppliers.php" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Add Suppliers</span>
+                            </a>
+                        </li>
+
+                        <li class="sidebar-item ">
+                            <a href="manage_suppliers.php" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Manage Suppliers</span>
+                            </a>
+                        </li>
+
                         <li class="sidebar-item">
                             <a href="add_categories.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>

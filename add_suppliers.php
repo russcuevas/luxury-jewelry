@@ -8,26 +8,22 @@ if (!isset($_SESSION['id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $category = trim($_POST['category']);
-    $description = trim($_POST['description']);
+    $supplier_id = trim($_POST['supplier_id']);
+    $supplier_name = trim($_POST['supplier_name']);
+    $supplier_address = trim($_POST['supplier_address']);
+    $phone = trim($_POST['phone']); {
+        $sql = "INSERT INTO suppliers (supplier_id, supplier_name, supplier_address, phone) VALUES (:supplier_id, :supplier_name, :supplier_address, :phone)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':supplier_id', $supplier_id);
+        $stmt->bindParam(':supplier_name', $supplier_name);
+        $stmt->bindParam(':supplier_address', $supplier_address);
+        $stmt->bindParam(':phone', $phone);
 
-    if (!empty($category) && !empty($description)) {
-        try {
-            $sql = "INSERT INTO add_categories (category, description) VALUES (:category, :description)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bindParam(':category', $category);
-            $stmt->bindParam(':description', $description);
-
-            if ($stmt->execute()) {
-                echo "<script>alert('Category added successfully!'); window.location.href='manage_categories.php';</script>";
-            } else {
-                echo "<script>alert('Error adding category.');</script>";
-            }
-        } catch (PDOException $e) {
-            echo "Database error: " . $e->getMessage();
+        if ($stmt->execute()) {
+            echo "<script>alert('Supplier added successfully!'); window.location.href='manage_suppliers.php';</script>";
+        } else {
+            echo "<script>alert('Error adding category.');</script>";
         }
-    } else {
-        echo "<script>alert('All fields are required.');</script>";
     }
 }
 ?>
@@ -80,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </a>
                         </li>
 
-                        <li class="sidebar-item ">
+                        <li class="sidebar-item active">
                             <a href="add_suppliers.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Add Suppliers</span>
@@ -94,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </a>
                         </li>
 
-                        <li class="sidebar-item active">
+                        <li class="sidebar-item">
                             <a href="add_categories.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Add Categories</span>
@@ -175,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="page-title">
                         <div class="row">
                             <div class="col-12 col-md-6 order-md-1 order-last">
-                                <h3>Add Categories</h3>
+                                <h3>Add Suppliers</h3>
                             </div>
                             <div class="col-12 col-md-6 order-md-2 order-first">
                                 <nav
@@ -184,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
                                         <li class="breadcrumb-item active" aria-current="page">
-                                            Add Categories
+                                            Add Suppliers
                                         </li>
                                     </ol>
                                 </nav>
@@ -203,29 +199,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <div class="row">
                                                     <div class="col-md-6 col-12">
                                                         <div class="form-group mandatory">
-                                                            <label for="" class="form-label">Category Name</label>
+                                                            <label for="" class="form-label">Supplier ID</label>
                                                             <input
                                                                 type="text"
                                                                 id=""
                                                                 class="form-control"
-                                                                placeholder="Category Name"
-                                                                name="category"
+                                                                placeholder="Supplier ID"
+                                                                name="supplier_id"
                                                                 data-parsley-required="true" />
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6 col-12">
                                                         <div class="form-group mandatory">
-                                                            <label for="" class="form-label">Category Description</label>
+                                                            <label for="" class="form-label">Supplier Name</label>
                                                             <input
                                                                 type="text"
                                                                 id=""
                                                                 class="form-control"
-                                                                placeholder="Category Description"
-                                                                name="description"
+                                                                placeholder="Supplier Name"
+                                                                name="supplier_name"
                                                                 data-parsley-required="true" />
                                                         </div>
                                                     </div>
-
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-group mandatory">
+                                                            <label for="" class="form-label">Supplier Address</label>
+                                                            <input
+                                                                type="text"
+                                                                id=""
+                                                                class="form-control"
+                                                                placeholder="Supplier Address"
+                                                                name="supplier_address"
+                                                                data-parsley-required="true" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-group mandatory">
+                                                            <label for="" class="form-label">Phone Number</label>
+                                                            <input
+                                                                type="text"
+                                                                id=""
+                                                                class="form-control"
+                                                                placeholder="Phone Number"
+                                                                name="phone"
+                                                                data-parsley-required="true" />
+                                                        </div>
+                                                    </div>
 
                                                 </div>
                                                 <div class="row">

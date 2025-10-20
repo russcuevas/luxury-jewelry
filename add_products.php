@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':product_category', $product_category);
 
             if ($stmt->execute()) {
-                echo "<script>alert('Product added successfully.'); window.location.href='add_products.php';</script>";
+                echo "<script>alert('Product added successfully.'); window.location.href='manage_products.php';</script>";
                 exit;
             } else {
                 echo "<script>alert('Database insert failed.');</script>";
@@ -96,6 +96,20 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <a href="dashboard.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Dashboard</span>
+                            </a>
+                        </li>
+
+                        <li class="sidebar-item ">
+                            <a href="add_suppliers.php" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Add Suppliers</span>
+                            </a>
+                        </li>
+
+                        <li class="sidebar-item ">
+                            <a href="manage_suppliers.php" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Manage Suppliers</span>
                             </a>
                         </li>
 

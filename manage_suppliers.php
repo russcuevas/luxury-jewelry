@@ -8,20 +8,24 @@ if (!isset($_SESSION['id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $category = trim($_POST['category']);
-    $description = trim($_POST['description']);
+    $id = $_POST['id'];
+    $supplier_name = trim($_POST['supplier_name']);
+    $supplier_address = trim($_POST['supplier_address']);
+    $phone = trim($_POST['phone']);
 
-    if (!empty($category) && !empty($description)) {
+    if (!empty($id) && !empty($supplier_name) && !empty($supplier_address) && !empty($phone)) {
         try {
-            $sql = "INSERT INTO add_categories (category, description) VALUES (:category, :description)";
+            $sql = "UPDATE suppliers SET supplier_name = :supplier_name, supplier_address = :supplier_address, phone = :phone WHERE id = :id";
             $stmt = $conn->prepare($sql);
-            $stmt->bindParam(':category', $category);
-            $stmt->bindParam(':description', $description);
+            $stmt->bindParam(':supplier_name', $supplier_name);
+            $stmt->bindParam(':supplier_address', $supplier_address);
+            $stmt->bindParam(':phone', $phone);
+            $stmt->bindParam(':id', $id);
 
             if ($stmt->execute()) {
-                echo "<script>alert('Category added successfully!'); window.location.href='manage_categories.php';</script>";
+                echo "<script>alert('Supplier updated successfully!'); window.location.href='manage_suppliers.php';</script>";
             } else {
-                echo "<script>alert('Error adding category.');</script>";
+                echo "<script>alert('Error updating supplier.');</script>";
             }
         } catch (PDOException $e) {
             echo "Database error: " . $e->getMessage();
@@ -30,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo "<script>alert('All fields are required.');</script>";
     }
 }
+
 ?>
 
 
@@ -40,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LUXURY JEWELRY - Web</title>
+    <link rel="stylesheet" href="assets/extensions/simple-datatables/style.css">
     <link rel="stylesheet" href="./assets/compiled/css/app.css">
     <link rel="stylesheet" href="./assets/compiled/css/app-dark.css">
     <link rel="stylesheet" href="./assets/compiled/css/iconly.css">
@@ -87,14 +93,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </a>
                         </li>
 
-                        <li class="sidebar-item ">
+                        <li class="sidebar-item active">
                             <a href="manage_suppliers.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Manage Suppliers</span>
                             </a>
                         </li>
 
-                        <li class="sidebar-item active">
+                        <li class="sidebar-item">
                             <a href="add_categories.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Add Categories</span>
@@ -116,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </li>
 
                         <li class="sidebar-item ">
-                            <a href="index.html" class='sidebar-link'>
+                            <a href="manage_products.php" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
                                 <span>Manage Products</span>
                             </a>
@@ -175,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="page-title">
                         <div class="row">
                             <div class="col-12 col-md-6 order-md-1 order-last">
-                                <h3>Add Categories</h3>
+                                <h3>Manage Suppliers</h3>
                             </div>
                             <div class="col-12 col-md-6 order-md-2 order-first">
                                 <nav
@@ -184,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
                                         <li class="breadcrumb-item active" aria-current="page">
-                                            Add Categories
+                                            Manage Suppliers
                                         </li>
                                     </ol>
                                 </nav>
@@ -193,59 +199,93 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
 
                     <!-- // Basic multiple Column Form section start -->
-                    <section id="multiple-column-form">
-                        <div class="row match-height">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-content">
-                                        <div class="card-body">
-                                            <form method="POST" action="" class="form" data-parsley-validate>
-                                                <div class="row">
-                                                    <div class="col-md-6 col-12">
-                                                        <div class="form-group mandatory">
-                                                            <label for="" class="form-label">Category Name</label>
-                                                            <input
-                                                                type="text"
-                                                                id=""
-                                                                class="form-control"
-                                                                placeholder="Category Name"
-                                                                name="category"
-                                                                data-parsley-required="true" />
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6 col-12">
-                                                        <div class="form-group mandatory">
-                                                            <label for="" class="form-label">Category Description</label>
-                                                            <input
-                                                                type="text"
-                                                                id=""
-                                                                class="form-control"
-                                                                placeholder="Category Description"
-                                                                name="description"
-                                                                data-parsley-required="true" />
-                                                        </div>
-                                                    </div>
+                    <section class="section">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                </h5>
+                                <a href="add_suppliers.php" class="btn btn-primary btn-sm">
+                                    Add Supplier +
+                                </a>
+                            </div>
 
+                            <div class="card-body">
+                                <table class="table table-striped" id="table1">
+                                    <thead>
+                                        <tr>
+                                            <th>Supplier ID</th>
+                                            <th>Supplier Name</th>
+                                            <th>Supplier Address</th>
+                                            <th>Phone</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        include 'connection.php';
+                                        $stmt = $conn->query("SELECT * FROM suppliers ORDER BY id ASC");
+                                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                        ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($row['supplier_id']); ?></td>
+                                                <td><?= htmlspecialchars($row['supplier_name']); ?></td>
+                                                <td><?= htmlspecialchars($row['supplier_address']); ?></td>
+                                                <td><?= htmlspecialchars($row['phone']); ?></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning editBtn"
+                                                        data-id="<?= $row['id']; ?>"
+                                                        data-supplier_name="<?= htmlspecialchars($row['supplier_name']); ?>"
+                                                        data-supplier_address="<?= htmlspecialchars($row['supplier_address']); ?>"
+                                                        data-phone="<?= htmlspecialchars($row['phone']); ?>">
+                                                        Edit
+                                                    </button>
+                                                    <a href="delete_suppliers.php?id=<?= $row['id']; ?>" class="btn btn-sm btn-danger"
+                                                        onclick="return confirm('Are you sure you want to delete this supplier?');">Delete</a>
+                                                </td>
+                                            </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
 
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-12 d-flex justify-content-end">
-                                                        <button type="submit" class="btn btn-primary me-1 mb-1">
-                                                            Save
-                                                        </button>
-                                                        <button
-                                                            type="reset"
-                                                            class="btn btn-light-secondary me-1 mb-1">
-                                                            Cancel
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
+                        <!-- Edit Modal -->
+                        <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Supplier</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="edit_id">
+
+                    <div class="mb-3">
+                        <label class="form-label">Supplier Name</label>
+                        <input type="text" name="supplier_name" id="edit_supplier_name" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Supplier Address</label>
+                        <input type="text" name="supplier_address" id="edit_supplier_address" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="text" name="phone" id="edit_phone" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
                     </section>
                 </div>
             </div>
@@ -256,12 +296,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 
         <script src="assets/compiled/js/app.js"></script>
-
-
-
         <script src="assets/extensions/jquery/jquery.min.js"></script>
         <script src="assets/extensions/parsleyjs/parsley.min.js"></script>
         <script src="assets/static/js/pages/parsley.js"></script>
+        <script src="assets/extensions/simple-datatables/umd/simple-datatables.js"></script>
+        <script src="assets/static/js/pages/simple-datatables.js"></script>
+<script>
+$(document).on("click", ".editBtn", function() {
+    let id = $(this).data("id");
+    let supplier_name = $(this).data("supplier_name");
+    let supplier_address = $(this).data("supplier_address");
+    let phone = $(this).data("phone");
+
+    $("#edit_id").val(id);
+    $("#edit_supplier_name").val(supplier_name);
+    $("#edit_supplier_address").val(supplier_address);
+    $("#edit_phone").val(phone);
+
+    $("#editModal").modal("show");
+});
+</script>
+
 
 </body>
 
