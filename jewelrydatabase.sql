@@ -24,6 +24,20 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `suppliers`
+--
+
+CREATE TABLE `suppliers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `supplier_id` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `supplier_name` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `supplier_address` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `phone` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+--
 -- Table structure for table `add_categories`
 --
 
@@ -54,7 +68,8 @@ CREATE TABLE `add_products` (
   `product_description` varchar(255) NOT NULL,
   `product_price` varchar(255) NOT NULL,
   `product_status` varchar(255) NOT NULL,
-  `product_category` int(11) NOT NULL
+  `product_category` int(11) NOT NULL,
+  `supplier_id` int(11) NOT NULL,
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -129,6 +144,11 @@ ALTER TABLE `admin`
 --
 -- Constraints for table `add_products`
 --
+
+ALTER TABLE `add_products`
+  ADD CONSTRAINT `fk_supplier_id` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+COMMIT;
+
 ALTER TABLE `add_products`
   ADD CONSTRAINT `fk_product_category` FOREIGN KEY (`product_category`) REFERENCES `add_categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;

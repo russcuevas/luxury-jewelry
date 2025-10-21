@@ -251,40 +251,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                         <!-- Edit Modal -->
                         <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Supplier</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="id" id="edit_id">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Supplier</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="hidden" name="id" id="edit_id">
 
-                    <div class="mb-3">
-                        <label class="form-label">Supplier Name</label>
-                        <input type="text" name="supplier_name" id="edit_supplier_name" class="form-control" required>
-                    </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Supplier Name</label>
+                                                <input type="text" name="supplier_name" id="edit_supplier_name" class="form-control" required>
+                                            </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Supplier Address</label>
-                        <input type="text" name="supplier_address" id="edit_supplier_address" class="form-control" required>
-                    </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Supplier Address</label>
+                                                <input type="text" name="supplier_address" id="edit_supplier_address" class="form-control" required>
+                                            </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Phone</label>
-                        <input type="text" name="phone" id="edit_phone" class="form-control" required>
-                    </div>
-                </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Phone</label>
+                                                <input type="text" name="phone" id="edit_phone" class="form-control" required>
+                                            </div>
+                                        </div>
 
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Update</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn btn-primary">Update</button>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
 
                     </section>
                 </div>
@@ -301,21 +301,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <script src="assets/static/js/pages/parsley.js"></script>
         <script src="assets/extensions/simple-datatables/umd/simple-datatables.js"></script>
         <script src="assets/static/js/pages/simple-datatables.js"></script>
-<script>
-$(document).on("click", ".editBtn", function() {
-    let id = $(this).data("id");
-    let supplier_name = $(this).data("supplier_name");
-    let supplier_address = $(this).data("supplier_address");
-    let phone = $(this).data("phone");
+        <script>
+            $(document).on("click", ".editBtn", function() {
+                let id = $(this).data("id");
+                let supplier_name = $(this).data("supplier_name");
+                let supplier_address = $(this).data("supplier_address");
+                let phone = $(this).data("phone");
 
-    $("#edit_id").val(id);
-    $("#edit_supplier_name").val(supplier_name);
-    $("#edit_supplier_address").val(supplier_address);
-    $("#edit_phone").val(phone);
+                $("#edit_id").val(id);
+                $("#edit_supplier_name").val(supplier_name);
+                $("#edit_supplier_address").val(supplier_address);
+                $("#edit_phone").val(phone);
 
-    $("#editModal").modal("show");
-});
-</script>
+                $("#editModal").modal("show");
+            });
+        </script>
 
 
 </body>
