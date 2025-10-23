@@ -65,8 +65,7 @@ include 'connection.php';
                 <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
                     <div class="navbar-nav mx-auto">
                         <a href="index.php" class="nav-item nav-link active">Home</a>
-                        <a href="shop.php" class="nav-item nav-link">Shop</a>
-                        <a href="user_login.php" class="nav-item nav-link">Cashier Login</a>
+                        <a href="login.php" class="nav-item nav-link">Cashier Login</a>
                         <a href="login.php" class="nav-item nav-link">Admin Login</a>
                     </div>
                 </div>
