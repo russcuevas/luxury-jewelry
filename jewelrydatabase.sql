@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 30, 2025 at 03:43 PM
+-- Generation Time: Oct 23, 2025 at 09:21 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -22,20 +22,6 @@ SET time_zone = "+00:00";
 --
 
 -- --------------------------------------------------------
-
---
--- Table structure for table `suppliers`
---
-
-CREATE TABLE `suppliers` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `supplier_id` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `supplier_name` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `supplier_address` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `phone` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 --
 -- Table structure for table `add_categories`
@@ -92,18 +78,67 @@ CREATE TABLE `admin` (
 INSERT INTO `admin` (`id`, `fullname`, `username`, `password`) VALUES
 (1, 'Kimberly Baculio Nasarita', 'kimberly', '123456789');
 
+-- --------------------------------------------------------
+
 --
--- Indexes for dumped tables
+-- Table structure for table `sales`
+--
+
+CREATE TABLE `sales` (
+  `id` int(11) NOT NULL,
+  `cashier_id` int(11) NOT NULL,
+  `sale_date` datetime DEFAULT current_timestamp(),
+  `payment_method` varchar(20) NOT NULL,
+  `sub_total` decimal(10,2) NOT NULL,
+  `tax` decimal(10,2) NOT NULL,
+  `grand_total` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sales_items`
+--
+
+CREATE TABLE `sales_items` (
+  `id` int(11) NOT NULL,
+  `sale_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `suppliers`
+--
+
+CREATE TABLE `suppliers` (
+  `id` int(11) NOT NULL,
+  `supplier_id` varchar(100) DEFAULT NULL,
+  `supplier_name` varchar(100) DEFAULT NULL,
+  `supplier_address` varchar(255) DEFAULT NULL,
+  `phone` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
 --
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `fullname` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
+  `password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Indexes for dumped tables
+--
 
 --
 -- Indexes for table `add_categories`
@@ -116,12 +151,38 @@ ALTER TABLE `add_categories`
 --
 ALTER TABLE `add_products`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_product_category` (`product_category`);
+  ADD KEY `fk_product_category` (`product_category`),
+  ADD KEY `fk_supplier_id` (`supplier_id`);
 
 --
 -- Indexes for table `admin`
 --
 ALTER TABLE `admin`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `sales`
+--
+ALTER TABLE `sales`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `sales_items`
+--
+ALTER TABLE `sales_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `sale_id` (`sale_id`);
+
+--
+-- Indexes for table `suppliers`
+--
+ALTER TABLE `suppliers`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -138,7 +199,7 @@ ALTER TABLE `add_categories`
 -- AUTO_INCREMENT for table `add_products`
 --
 ALTER TABLE `add_products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `admin`
@@ -147,22 +208,45 @@ ALTER TABLE `admin`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- Constraints for dumped tables
+-- AUTO_INCREMENT for table `sales`
+--
+ALTER TABLE `sales`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `sales_items`
+--
+ALTER TABLE `sales_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT for table `suppliers`
+--
+ALTER TABLE `suppliers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
+--
+-- Constraints for dumped tables
+--
 
 --
 -- Constraints for table `add_products`
 --
-
 ALTER TABLE `add_products`
+  ADD CONSTRAINT `fk_product_category` FOREIGN KEY (`product_category`) REFERENCES `add_categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_supplier_id` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-COMMIT;
 
-ALTER TABLE `add_products`
-  ADD CONSTRAINT `fk_product_category` FOREIGN KEY (`product_category`) REFERENCES `add_categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+--
+-- Constraints for table `sales_items`
+--
+ALTER TABLE `sales_items`
+  ADD CONSTRAINT `sales_items_ibfk_1` FOREIGN KEY (`sale_id`) REFERENCES `sales` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
