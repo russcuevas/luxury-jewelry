@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_price = $_POST['product_price'];
     $product_status = isset($_POST['product_status']) && $_POST['product_status'] === 'active' ? 'active' : 'not active';
     $product_category = $_POST['product_category'];
+    $supplier_id = $_POST['supplier_id']; // ✅ New line
 
     if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
         $fileTmpPath = $_FILES['product_image']['tmp_name'];
@@ -22,8 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $destPath = $uploadFileDir . $fileNameClean;
 
         if (move_uploaded_file($fileTmpPath, $destPath)) {
-            $query = "INSERT INTO add_products (product_image, product_name, product_description, product_price, product_status, product_category) 
-                      VALUES (:product_image, :product_name, :product_description, :product_price, :product_status, :product_category)";
+            // ✅ Updated query to include supplier_id
+            $query = "INSERT INTO add_products 
+                      (product_image, product_name, product_description, product_price, product_status, product_category, supplier_id) 
+                      VALUES 
+                      (:product_image, :product_name, :product_description, :product_price, :product_status, :product_category, :supplier_id)";
+            
             $stmt = $conn->prepare($query);
             $stmt->bindParam(':product_image', $fileNameClean);
             $stmt->bindParam(':product_name', $product_name);
@@ -31,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':product_price', $product_price);
             $stmt->bindParam(':product_status', $product_status);
             $stmt->bindParam(':product_category', $product_category);
+            $stmt->bindParam(':supplier_id', $supplier_id); // ✅ New binding
 
             if ($stmt->execute()) {
                 echo "<script>alert('Product added successfully.'); window.location.href='manage_products.php';</script>";
@@ -46,8 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+
 $stmt = $conn->query("SELECT id, category FROM add_categories ORDER BY category ASC");
 $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$stmtSuppliers = $conn->query("SELECT id, supplier_name FROM suppliers ORDER BY supplier_name ASC");
+$suppliers = $stmtSuppliers->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 
@@ -140,7 +150,19 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <span>Manage Products</span>
                             </a>
                         </li>
+                        <li class="sidebar-item ">
+                            <a href="add_users.php" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Add Users</span>
+                            </a>
+                        </li>
 
+                        <li class="sidebar-item ">
+                            <a href="manage_users.php" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Manage Users</span>
+                            </a>
+                        </li>
 
 
                     </ul>
@@ -299,6 +321,20 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                                 <label class="form-check-label" for="product_status">Product Status (Active)</label>
                                                             </div>
                                                         </div>
+                                                        <div class="col-md-6 col-12">
+    <div class="form-group mandatory">
+        <label for="supplier_id" class="form-label">Supplier</label>
+        <select name="supplier_id" id="supplier_id" class="form-select" required>
+            <option value="" disabled selected>Select a supplier</option>
+            <?php foreach ($suppliers as $sup): ?>
+                <option value="<?= htmlspecialchars($sup['id']) ?>">
+                    <?= htmlspecialchars($sup['supplier_name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+</div>
+
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-12 d-flex justify-content-end">

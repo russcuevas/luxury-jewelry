@@ -13,37 +13,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_description = $_POST['product_description'];
     $product_price = $_POST['product_price'];
     $product_status = isset($_POST['product_status']) ? $_POST['product_status'] : 'not active';
+    $supplier_id = $_POST['supplier_id'];
 
     $imageName = null;
+    $uploadDir = 'assets/images/products/';
 
     if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
         $tmp_name = $_FILES['product_image']['tmp_name'];
         $originalName = basename($_FILES['product_image']['name']);
         $imageName = time() . '_' . $originalName;
-        $uploadDir = 'assets/images/products/';
         move_uploaded_file($tmp_name, $uploadDir . $imageName);
 
-        $stmt = $conn->prepare("SELECT product_image FROM add_products WHERE id = :id");
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
-        $old = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Delete old image
+        $stmtOld = $conn->prepare("SELECT product_image FROM add_products WHERE id = :id");
+        $stmtOld->bindParam(':id', $id);
+        $stmtOld->execute();
+        $old = $stmtOld->fetch(PDO::FETCH_ASSOC);
+
         if (!empty($old['product_image']) && file_exists($uploadDir . $old['product_image'])) {
             unlink($uploadDir . $old['product_image']);
         }
 
-        $sql = "UPDATE add_products SET product_name = :product_name, product_description = :product_description, product_price = :product_price, product_status = :product_status, product_image = :product_image WHERE id = :id";
+        // ✅ SQL with new image
+        $sql = "UPDATE add_products 
+                SET product_name = :product_name, 
+                    product_description = :product_description, 
+                    product_price = :product_price, 
+                    product_status = :product_status, 
+                    supplier_id = :supplier_id, 
+                    product_image = :product_image 
+                WHERE id = :id";
     } else {
-        $sql = "UPDATE add_products SET product_name = :product_name, product_description = :product_description, product_price = :product_price, product_status = :product_status WHERE id = :id";
+        // ✅ SQL without new image
+        $sql = "UPDATE add_products 
+                SET product_name = :product_name, 
+                    product_description = :product_description, 
+                    product_price = :product_price, 
+                    product_status = :product_status, 
+                    supplier_id = :supplier_id 
+                WHERE id = :id";
     }
 
+    // ✅ Now prepare statement before binding
     $stmt = $conn->prepare($sql);
+
+    // Bind parameters
     $stmt->bindParam(':product_name', $product_name);
     $stmt->bindParam(':product_description', $product_description);
     $stmt->bindParam(':product_price', $product_price);
     $stmt->bindParam(':product_status', $product_status);
+    $stmt->bindParam(':supplier_id', $supplier_id);
     $stmt->bindParam(':id', $id);
 
-    if (isset($imageName)) {
+    if ($imageName !== null) {
         $stmt->bindParam(':product_image', $imageName);
     }
 
@@ -53,6 +75,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "<script>alert('Failed to update product.'); window.location.href='manage_products.php';</script>";
     }
 }
+
+
+$stmtSuppliers = $conn->prepare("SELECT id, supplier_name FROM suppliers ORDER BY supplier_name ASC");
+$stmtSuppliers->execute();
+$suppliers = $stmtSuppliers->fetchAll(PDO::FETCH_ASSOC);
 
 
 $stmt = $conn->prepare('SELECT * FROM `add_products`');
@@ -150,7 +177,19 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <span>Manage Products</span>
                             </a>
                         </li>
+                        <li class="sidebar-item ">
+                            <a href="add_users.php" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Add Users</span>
+                            </a>
+                        </li>
 
+                        <li class="sidebar-item ">
+                            <a href="manage_users.php" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Manage Users</span>
+                            </a>
+                        </li>
 
 
                     </ul>
@@ -272,17 +311,17 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                 </td>
 
                                                 <td>
-                                                <button
-                                                    class="btn btn-sm btn-warning editProductBtn"
-                                                    data-id="<?= $product['id']; ?>"
-                                                    data-name="<?= htmlspecialchars($product['product_name']); ?>"
-                                                    data-description="<?= htmlspecialchars($product['product_description']); ?>"
-                                                    data-price="<?= $product['product_price']; ?>"
-                                                    data-status="<?= $product['product_status']; ?>"
-                                                    data-image="<?= htmlspecialchars($product['product_image']); ?>"
-                                                >
-                                                    Edit
-                                                </button>
+                                                    <button class="btn btn-sm btn-warning editProductBtn"
+                                                        data-id="<?= $product['id'] ?>"
+                                                        data-name="<?= htmlspecialchars($product['product_name']) ?>"
+                                                        data-description="<?= htmlspecialchars($product['product_description']) ?>"
+                                                        data-price="<?= htmlspecialchars($product['product_price']) ?>"
+                                                        data-status="<?= htmlspecialchars($product['product_status']) ?>"
+                                                        data-image="<?= htmlspecialchars($product['product_image']) ?>"
+                                                        data-supplier="<?= htmlspecialchars($product['supplier_id']) ?>"> <!-- ✅ new -->
+                                                        Edit
+                                                    </button>
+
 
                                                     <a href="delete_product.php?id=<?= $product['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
                                                 </td>
@@ -328,20 +367,31 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                         <label>Price</label>
                                                         <input type="number" step="0.01" class="form-control" name="product_price" id="edit_product_price" required>
                                                     </div>
+                                                    <div class="mb-3">
+                                                        <label>Supplier</label>
+                                                        <select class="form-select" name="supplier_id" id="edit_supplier_id" required>
+                                                            <option value="" disabled selected>Select a supplier</option>
+                                                            <?php foreach ($suppliers as $sup): ?>
+                                                                <option value="<?= htmlspecialchars($sup['id']) ?>">
+                                                                    <?= htmlspecialchars($sup['supplier_name']) ?>
+                                                                </option>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
 
-<div class="mb-3">
-    <label>Status</label>
-    <div class="form-check form-switch">
-        <input
-            class="form-check-input"
-            type="checkbox"
-            id="edit_product_status"
-            name="product_status"
-            value="active"
-        >
-        <label class="form-check-label" for="edit_product_status">Active</label>
-    </div>
-</div>
+
+                                                    <div class="mb-3">
+                                                        <label>Status</label>
+                                                        <div class="form-check form-switch">
+                                                            <input
+                                                                class="form-check-input"
+                                                                type="checkbox"
+                                                                id="edit_product_status"
+                                                                name="product_status"
+                                                                value="active">
+                                                            <label class="form-check-label" for="edit_product_status">Active</label>
+                                                        </div>
+                                                    </div>
 
                                                 </div>
 
@@ -374,35 +424,43 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <script src="assets/extensions/simple-datatables/umd/simple-datatables.js"></script>
         <script src="assets/static/js/pages/simple-datatables.js"></script>
         <script>
-            $(document).on("click", ".editProductBtn", function () {
+            $(document).on("click", ".editProductBtn", function() {
                 const id = $(this).data("id");
                 const name = $(this).data("name");
                 const description = $(this).data("description");
                 const price = $(this).data("price");
                 const status = $(this).data("status");
                 const image = $(this).data("image");
+                const supplier = $(this).data("supplier"); // ✅ New
 
+                // Fill fields
                 $("#edit_product_id").val(id);
                 $("#edit_product_name").val(name);
                 $("#edit_product_description").val(description);
                 $("#edit_product_price").val(price);
-                // $("#edit_product_status").val(status);
 
-                    if (status === "active") {
-                        $("#edit_product_status").prop("checked", true);
-                    } else {
-                        $("#edit_product_status").prop("checked", false);
-                    }
+                // ✅ Set supplier dropdown
+                $("#edit_supplier_id").val(supplier);
 
+                // Status checkbox
+                if (status === "active") {
+                    $("#edit_product_status").prop("checked", true);
+                } else {
+                    $("#edit_product_status").prop("checked", false);
+                }
+
+                // Product image
                 if (image) {
                     $("#current_image_preview").attr("src", "assets/images/products/" + image);
                 } else {
                     $("#current_image_preview").attr("src", "assets/images/products/default.jpg");
                 }
 
+                // Show modal
                 $("#editProductModal").modal("show");
             });
         </script>
+
 
 </body>
 

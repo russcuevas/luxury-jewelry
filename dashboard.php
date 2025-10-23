@@ -94,6 +94,20 @@ if (!isset($_SESSION['id'])) {
                                 <span>Manage Products</span>
                             </a>
                         </li>
+
+                        <li class="sidebar-item ">
+                            <a href="add_users.php" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Add Users</span>
+                            </a>
+                        </li>
+
+                        <li class="sidebar-item ">
+                            <a href="manage_users.php" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Manage Users</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>

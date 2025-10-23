@@ -69,7 +69,7 @@ CREATE TABLE `add_products` (
   `product_price` varchar(255) NOT NULL,
   `product_status` varchar(255) NOT NULL,
   `product_category` int(11) NOT NULL,
-  `supplier_id` int(11) NOT NULL,
+  `supplier_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -95,6 +95,15 @@ INSERT INTO `admin` (`id`, `fullname`, `username`, `password`) VALUES
 --
 -- Indexes for dumped tables
 --
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `fullname` varchar(255) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 --
 -- Indexes for table `add_categories`
@@ -140,6 +149,9 @@ ALTER TABLE `admin`
 --
 -- Constraints for dumped tables
 --
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 
 --
 -- Constraints for table `add_products`
