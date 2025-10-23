@@ -173,7 +173,7 @@ $grandTotal = $total + $tax;
             </header>
 
             <div id="main-content">
-                <h3 class="mb-4">Dashboard</h3>
+                <h3 class="mb-4">Cashier Dashboard</h3>
 
       <div class="row gx-4">
         <!-- Products Section -->
@@ -247,7 +247,7 @@ $grandTotal = $total + $tax;
         <!-- Cart Sidebar -->
         <aside class="col-lg-4">
           <div class="card shadow-sm sticky-top" style="top: 1rem;">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header text-white">
               <h5 class="mb-0">Bills</h5>
             </div>
             <div class="card-body d-flex flex-column" style="min-height: 400px;">
@@ -292,25 +292,33 @@ $grandTotal = $total + $tax;
                 </div>
 
                 <div class="mt-auto">
-                  <div class="d-flex justify-content-between fw-semibold mb-2">
-                    <span>Sub Total</span>
-                    <span>₱<?= number_format($total, 2) ?></span>
-                  </div>
-                  <div class="d-flex justify-content-between fw-semibold mb-2">
-                    <span>Tax 10% (VAT Included)</span>
-                    <span>₱<?= number_format($tax, 2) ?></span>
-                  </div>
-                  <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
-                    <span>Total</span>
-                    <span>₱<?= number_format($grandTotal, 2) ?></span>
-                  </div>
-                  <button
-                    class="btn btn-primary w-100"
-                    onclick="alert('Place order functionality coming soon!')"
-                    type="button"
-                  >
-                    Place Order
-                  </button>
+                  <form method="post" action="add_sale.php">
+  <input type="hidden" name="cart" value="<?= htmlspecialchars(json_encode($_SESSION['cart'])) ?>" />
+  <div class="mb-3">
+    <label for="payment_method" class="form-label">Payment Method</label>
+    <select name="payment_method" id="payment_method" class="form-select" required>
+      <option value="" disabled selected>Select payment method</option>
+      <option value="GCASH">GCASH</option>
+      <option value="COD">COD</option>
+    </select>
+  </div>
+
+  <div class="d-flex justify-content-between fw-semibold mb-2">
+    <span>Sub Total</span>
+    <span>₱<?= number_format($total, 2) ?></span>
+  </div>
+  <div class="d-flex justify-content-between fw-semibold mb-2">
+    <span>Tax 10% (VAT Included)</span>
+    <span>₱<?= number_format($tax, 2) ?></span>
+  </div>
+  <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
+    <span>Total</span>
+    <span>₱<?= number_format($grandTotal, 2) ?></span>
+  </div>
+  <button type="submit" class="btn btn-primary w-100" <?= empty($cartDetails) ? 'disabled' : '' ?>>
+    Place Order
+  </button>
+</form>
                 </div>
               <?php else: ?>
                 <p class="text-muted">Your cart is empty.</p>
